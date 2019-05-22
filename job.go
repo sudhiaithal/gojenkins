@@ -73,17 +73,17 @@ type JobResponse struct {
 		IconUrl       string `json:"iconUrl"`
 		Score         int64  `json:"score"`
 	} `json:"healthReport"`
-	InQueue               bool       `json:"inQueue"`
-	KeepDependencies      bool       `json:"keepDependencies"`
-	LastBuild             JobBuild   `json:"lastBuild"`
-	LastCompletedBuild    JobBuild   `json:"lastCompletedBuild"`
-	LastFailedBuild       JobBuild   `json:"lastFailedBuild"`
-	LastStableBuild       JobBuild   `json:"lastStableBuild"`
-	LastSuccessfulBuild   JobBuild   `json:"lastSuccessfulBuild"`
-	LastUnstableBuild     JobBuild   `json:"lastUnstableBuild"`
-	LastUnsuccessfulBuild JobBuild   `json:"lastUnsuccessfulBuild"`
-	Name                  string     `json:"name"`
-	NextBuildNumber       int64      `json:"nextBuildNumber"`
+	InQueue               bool     `json:"inQueue"`
+	KeepDependencies      bool     `json:"keepDependencies"`
+	LastBuild             JobBuild `json:"lastBuild"`
+	LastCompletedBuild    JobBuild `json:"lastCompletedBuild"`
+	LastFailedBuild       JobBuild `json:"lastFailedBuild"`
+	LastStableBuild       JobBuild `json:"lastStableBuild"`
+	LastSuccessfulBuild   JobBuild `json:"lastSuccessfulBuild"`
+	LastUnstableBuild     JobBuild `json:"lastUnstableBuild"`
+	LastUnsuccessfulBuild JobBuild `json:"lastUnsuccessfulBuild"`
+	Name                  string   `json:"name"`
+	NextBuildNumber       int64    `json:"nextBuildNumber"`
 	Property              []struct {
 		ParameterDefinitions []ParameterDefinition `json:"parameterDefinitions"`
 	} `json:"property"`
@@ -402,12 +402,12 @@ func (j *Job) HasQueuedBuild() {
 	panic("Not Implemented yet")
 }
 
-func (j *Job) InvokeSimple(params map[string]string) (int64, error) {
+func (j *Job) InvokeSimpleWithOptions(params map[string]string, ignoreQueued bool) (int64, error) {
 	isQueued, err := j.IsQueued()
 	if err != nil {
 		return 0, err
 	}
-	if isQueued {
+	if !ignoreQueued && isQueued {
 		Error.Printf("%s is already running", j.GetName())
 		return 0, nil
 	}
@@ -449,6 +449,12 @@ func (j *Job) InvokeSimple(params map[string]string) (int64, error) {
 	}
 
 	return number, nil
+}
+
+func (j *Job) InvokeSimple(params map[string]string) (int64, error) {
+
+	return j.InvokeSimpleWithOptions(params, false)
+
 }
 
 func (j *Job) Invoke(files []string, skipIfRunning bool, params map[string]string, cause string, securityToken string) (bool, error) {
