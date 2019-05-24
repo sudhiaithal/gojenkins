@@ -31,7 +31,7 @@ type Build struct {
 	Depth   int
 }
 
-type parameter struct {
+type Parameter struct {
 	Name  string
 	Value string
 }
@@ -59,7 +59,7 @@ type Culprit struct {
 }
 
 type generalObj struct {
-	Parameters              []parameter              `json:"parameters"`
+	Parameters              []Parameter              `json:"parameters"`
 	Causes                  []map[string]interface{} `json:"causes"`
 	BuildsByBranchName      map[string]Builds        `json:"buildsByBranchName"`
 	LastBuiltRevision       BuildRevision            `json:"lastBuiltRevision"`
@@ -279,7 +279,7 @@ func (b *Build) GetCauses() ([]map[string]interface{}, error) {
 	return nil, errors.New("No Causes")
 }
 
-func (b *Build) GetParameters() []parameter {
+func (b *Build) GetParameters() []Parameter {
 	for _, a := range b.Raw.Actions {
 		if a.Parameters != nil {
 			return a.Parameters

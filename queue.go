@@ -60,7 +60,7 @@ type taskResponse struct {
 
 type generalAction struct {
 	Causes     []map[string]interface{}
-	Parameters []parameter
+	Parameters []Parameter
 }
 
 func (q *Queue) Tasks() []*Task {
@@ -114,7 +114,7 @@ func (t *Task) GetWhy() string {
 	return t.Raw.Why
 }
 
-func (t *Task) GetParameters() []parameter {
+func (t *Task) GetParameters() []Parameter {
 	for _, a := range t.Raw.Actions {
 		if a.Parameters != nil {
 			return a.Parameters
