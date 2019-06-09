@@ -17,6 +17,7 @@ package gojenkins
 import (
 	"bytes"
 	"encoding/json"
+	"encoding/xml"
 	"errors"
 	"fmt"
 	"net/url"
@@ -34,6 +35,14 @@ type Job struct {
 type JobBuild struct {
 	Number int64
 	URL    string
+}
+
+type RunningBuild struct {
+	XMLName xml.Name `xml:"build"`
+	Number  int64    `xml:"number"`
+	//Result          int64  `xml:"result"`
+	FullDisplayName string `xml:"fullDisplayName"`
+	URL             string `xml:"url"`
 }
 
 type InnerJob struct {
@@ -198,6 +207,33 @@ func (j *Job) GetAllBuildIds() ([]JobBuild, error) {
 		return nil, err
 	}
 	return buildsResp.Builds, nil
+}
+
+// Returns running build IDS
+func (j *Job) GetRunningBuildIds() ([]JobBuild, error) {
+	var buildsResp struct {
+		XMLName xml.Name       `xml:"builds"`
+		Builds  []RunningBuild `xml:"build"`
+	}
+	var data string
+	_, err := j.Jenkins.Requester.GetXML("/api/xml", &data, map[string]string{"tree": "jobs[name,builds[fullDisplayName,number,url,result]]",
+		"xpath":   "/hudson/job/build[count(result)=0]",
+		"wrapper": "builds"})
+
+	if err != nil {
+		fmt.Printf("Error %v", err.Error())
+		return nil, err
+	}
+
+	xml.Unmarshal([]byte(data), &buildsResp)
+	var jBuilds []JobBuild
+	for _, build := range buildsResp.Builds {
+		if strings.Split(build.FullDisplayName, " ")[0] == j.GetName() {
+			jBuilds = append(jBuilds, JobBuild{Number: build.Number, URL: build.URL})
+		}
+	}
+
+	return jBuilds, nil
 }
 
 func (j *Job) GetUpstreamJobsMetadata() []InnerJob {
